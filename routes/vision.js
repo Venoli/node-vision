@@ -8,12 +8,14 @@ router.post('/classify', function(req, res, next) {
   let response = [];
   // Your code starts here //
 
-  // AWS Configerations
-  AWS.config.update({region:process.env.AWS_REGION,
+  // AWS Configurations
+  AWS.config.update({
+    region:process.env.AWS_REGION,
     accessKeyId: process.env.AWS_ACCESS_KEY,
     secretAccessKey: process.env.AWS_SECRET_KEY,
     })
-  
+
+  // Calling Rekognition API
   const client = new AWS.Rekognition();
   var imageData = Buffer.from(req.files.file.data, 'base64');
   
@@ -25,10 +27,9 @@ router.post('/classify', function(req, res, next) {
     
     client.detectLabels(params, function(err, awsResponse) {
      if (err) {
-      console.log(err, err.stack); // if an error occurred
+      console.log(err, err.headers); // if an error occurred
 
-      error =  "Unable to process the request"
-      ErrorHandling(error)
+      HandleErrors(err)
 
     } else {
      
@@ -36,18 +37,16 @@ router.post('/classify', function(req, res, next) {
 
       response = awsResponse.Labels.map((label) => label.Name)
       console.log('d2',response)
-      DetectLabel(response)
+      GettLabels(response)
 
     } 
     });
 
-    const ErrorHandling = (error) => {
-      res.json({
-        "error": "Unable to process the request"
-      });
+    const HandleErrors = (err) => {
+       res.status(500).json({ "error":"Unable to process the request" });
     }
 
-  const DetectLabel = (response) => {
+  const GettLabels = (response) => {
   // Your code ends here //
   res.json({
     "labels": response
